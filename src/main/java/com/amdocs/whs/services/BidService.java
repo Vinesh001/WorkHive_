@@ -27,4 +27,9 @@ public class BidService {
     public List<Bid> getBidsForFreelancer(int freelancerId) {
         return bidDao.getBidsByFreelancerId(freelancerId);
     }
+    
+    public boolean updateBidStatus(Bid bid) {
+    	return bidDao.updateBidStatus(bid);
+    }
+
 }

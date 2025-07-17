@@ -86,4 +86,18 @@ public class ProjectDaoImpl implements ProjectDao {
 
 		return projects;
 	}
+	
+	@Override
+	public boolean updateProjectStatus(int projectId, String status) {
+		String sql = "UPDATE projects SET status = ? WHERE project_id = ?";
+		try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+			ps.setString(1, status);
+			ps.setInt(2, projectId);
+			return ps.executeUpdate() > 0;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
 }

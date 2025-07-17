@@ -27,4 +27,9 @@ public class ProjectService {
 	public List<Project> getClientProjects(int clientId) {
 		return projectDao.getProjectsByClientId(clientId);
 	}
+	
+	public boolean updateProjectStatus(int projectId, String status) {
+		return projectDao.updateProjectStatus(projectId, status);
+	}
+
 }

@@ -1,22 +1,25 @@
-package com.amdocs.whs.main;
+package com.amdocs.whs.services;
 
 import java.util.List;
 import java.util.Scanner;
 
 import com.amdocs.whs.bean.Bid;
 import com.amdocs.whs.bean.Contract;
+import com.amdocs.whs.bean.ProgressUpdate;
 import com.amdocs.whs.bean.Project;
 import com.amdocs.whs.bean.User;
-import com.amdocs.whs.services.BidService;
-import com.amdocs.whs.services.ContractService;
-import com.amdocs.whs.services.ProjectService;
+//import com.amdocs.whs.services.BidService;
+//import com.amdocs.whs.services.ContractService;
+//import com.amdocs.whs.services.PaymentService;
+//import com.amdocs.whs.services.ProgressUpdateService;
+//import com.amdocs.whs.services.ProjectService;
 
 public class FreelancerDashboard {
 
 	private static final Scanner sc = new Scanner(System.in);
 	private static final ProjectService projectService = new ProjectService();
 	private static final BidService bidService = new BidService();
-	private static final ContractService contractService = new ContractService();
+//	private static final ContractService contractService = new ContractService();
 
 	public static void show(User freelancer) {
 		boolean exit = false;
@@ -27,7 +30,9 @@ public class FreelancerDashboard {
 			System.out.println("2. Place a Bid on Project");
 			System.out.println("3. View My Bids");
 			System.out.println("4. View My Contracts");
-			System.out.println("5. Logout");
+			System.out.println("5. Submit Progress Update");
+			System.out.println("6. Mark Contract as Complete (Request Payment)");
+			System.out.println("7. Home");
 
 			System.out.print("Choose option: ");
 			int choice = Integer.parseInt(sc.nextLine());
@@ -46,7 +51,12 @@ public class FreelancerDashboard {
 				viewMyContracts(freelancer);
 				break;
 			case 5:
-				System.out.println("Logging out...");
+			    submitProgressUpdate(freelancer);
+			    break;
+			case 6:
+				submitProgressUpdate(freelancer);
+			case 7:
+				System.out.println("Back to home");
 				exit = true;
 				break;
 			default:
@@ -111,27 +121,72 @@ public class FreelancerDashboard {
 		}
 
 		System.out.println("\nYour Bids:");
+		boolean anyPending = false;
+
 		for (Bid b : bids) {
-			System.out.println("Bid ID: " + b.getBidId() + " | Project ID: " + b.getProjectId());
-			System.out.println("Amount: " + b.getBidAmount() + " | Status: " + b.getStatus());
-			System.out.println("Proposal: " + b.getProposal());
-			System.out.println("-----------------------------------");
-		}
-	}
-
-	private static void viewMyContracts(User freelancer) {
-		List<Contract> list = contractService.getContractsByFreelancerId(freelancer.getUserId());
-
-		if (list.isEmpty()) {
-			System.out.println("No contracts assigned.");
-		} else {
-			System.out.println("\nYour Contracts:");
-			for (Contract c : list) {
-				System.out.println("Contract ID: " + c.getContractId() + " | Project ID: " + c.getProjectId()
-						+ " | Status: " + c.getStatus());
-				System.out.println("Start: " + c.getStartDate() + " | End: " + c.getEndDate());
+			if ("Pending".equalsIgnoreCase(b.getStatus())) {
+				anyPending = true;
+				System.out.println("Bid ID: " + b.getBidId() + " | Project ID: " + b.getProjectId());
+				System.out.println("Amount: " + b.getBidAmount() + " | Status: " + b.getStatus());
+				System.out.println("Proposal: " + b.getProposal());
 				System.out.println("-----------------------------------");
 			}
 		}
+
+		if (!anyPending) {
+			System.out.println("No active/pending bids to show.");
+		}
+
 	}
+
+	private static void viewMyContracts(User freelancer) {
+		ContractService contractService = new ContractService();
+		PaymentService paymentService = new PaymentService();
+
+		List<Contract> contracts = contractService.getContractsByFreelancerId(freelancer.getUserId());
+
+		if (contracts.isEmpty()) {
+			System.out.println("No contracts found.");
+			return;
+		}
+
+		System.out.println("\n--- My Contract Summary ---");
+		for (Contract c : contracts) {
+			System.out.println("Contract ID: " + c.getContractId() +
+			                   " | Project ID: " + c.getProjectId() +
+			                   " | Freelancer ID: " + c.getFreelancerId() +
+			                   " | Status: " + c.getStatus());
+
+			if (c.getStatus().equalsIgnoreCase("Completed")) {
+				List<com.amdocs.whs.bean.Payment> payments = paymentService.getPaymentsByContractId(c.getContractId());
+				if (payments.isEmpty()) {
+					System.out.println("  ➤ No payment recorded.");
+				} else {
+					for (com.amdocs.whs.bean.Payment p : payments) {
+						System.out.println("  ➤ Payment: ₹" + p.getAmount() + 
+						                   " | Date: " + p.getPaymentDate() + 
+						                   " | Status: " + p.getStatus());
+					}
+				}
+			}
+			System.out.println("---------------------------------------------");
+		}
+	}
+	
+	private static void submitProgressUpdate(User freelancer) {
+	    System.out.print("Enter Contract ID: ");
+	    int contractId = Integer.parseInt(sc.nextLine());
+
+	    System.out.print("Enter progress update: ");
+	    String update = sc.nextLine();
+
+	    ProgressUpdate pu = new ProgressUpdate();
+	    pu.setContractId(contractId);
+	    pu.setProgressDescription(update);
+
+	    boolean success = new ProgressUpdateService().submitUpdate(pu);
+
+	    System.out.println(success ? "Progress submitted." : "Failed to submit progress.");
+	}
+
 }

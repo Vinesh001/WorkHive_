@@ -70,4 +70,30 @@ public class MilestoneDaoImpl implements MilestoneDao {
 		}
 		return false;
 	}
+	@Override
+	public int createMilestoneAndReturnId(Milestone milestone) {
+	    String sql = "INSERT INTO milestones (contract_id, description, due_date, is_completed, is_paid) VALUES (?, ?, ?, ?, ?)";
+	    try (Connection conn = DBConnection.getConnection();
+	         PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+	        ps.setInt(1, milestone.getContractId());
+	        ps.setString(2, milestone.getDescription());
+	        ps.setString(3, milestone.getDueDate());
+	        ps.setBoolean(4, milestone.isCompleted());
+	        ps.setBoolean(5, milestone.isPaid());
+
+	        ps.executeUpdate();
+
+	        ResultSet rs = ps.getGeneratedKeys();
+	        if (rs.next()) {
+	            return rs.getInt(1);
+	        }
+
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+
+	    return -1;
+	}
+
 }

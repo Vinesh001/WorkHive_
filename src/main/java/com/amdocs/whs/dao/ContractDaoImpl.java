@@ -85,4 +85,43 @@ public class ContractDaoImpl implements ContractDao {
 		}
 		return contracts;
 	}
+	
+	@Override
+	public boolean updateContractStatus(int contractId, String status) {
+	    String sql = "UPDATE contracts SET status = ? WHERE contract_id = ?";
+	    try (Connection conn = DBConnection.getConnection();
+	         PreparedStatement ps = conn.prepareStatement(sql)) {
+	        ps.setString(1, status);
+	        ps.setInt(2, contractId);
+	        return ps.executeUpdate() > 0;
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return false;
+	}
+	
+	@Override
+	public Contract getContractById(int contractId) {
+	    String sql = "SELECT * FROM contracts WHERE contract_id = ?";
+	    try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+	        ps.setInt(1, contractId);
+	        ResultSet rs = ps.executeQuery();
+
+	        if (rs.next()) {
+	            Contract contract = new Contract();
+	            contract.setContractId(rs.getInt("contract_id"));
+	            contract.setClientId(rs.getInt("client_id"));
+	            contract.setFreelancerId(rs.getInt("freelancer_id"));
+	            contract.setProjectId(rs.getInt("project_id"));
+	            contract.setStatus(rs.getString("status"));
+	            contract.setStartDate(rs.getString("start_date"));
+	            contract.setEndDate(rs.getString("end_date"));
+	            return contract;
+	        }
+
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return null;
+	}
 }

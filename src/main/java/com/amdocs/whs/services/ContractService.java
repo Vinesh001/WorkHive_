@@ -27,4 +27,17 @@ public class ContractService {
     public List<Contract> getContractsByFreelancerId(int freelancerId) {
         return contractDao.getContractsByFreelancerId(freelancerId);
     }
+    
+    public boolean markContractAsCompleted(int contractId) {
+        return contractDao.updateContractStatus(contractId, "Completed");
+    }
+    
+    public Contract getContractById(int contractId) {
+        return contractDao.getContractById(contractId);
+    }
+
+    public List<Contract> getAllContractsByClient(int clientId) {
+        return contractDao.getContractsByClientId(clientId);
+    }
+
 }

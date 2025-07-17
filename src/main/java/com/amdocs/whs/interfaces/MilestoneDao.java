@@ -5,8 +5,7 @@ import java.util.List;
 
 public interface MilestoneDao {
 	boolean addMilestone(Milestone milestone);
-
 	List<Milestone> getMilestonesByContractId(int contractId);
-
+	int createMilestoneAndReturnId(Milestone milestone);
 	boolean markMilestoneCompleted(int milestoneId);
 }

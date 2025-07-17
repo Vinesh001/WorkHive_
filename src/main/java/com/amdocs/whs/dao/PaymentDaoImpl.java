@@ -81,4 +81,50 @@ public class PaymentDaoImpl implements PaymentDao {
 		}
 		return list;
 	}
+	
+	@Override
+	public boolean addPayment(int milestoneId, double amount) {
+	    String sql = "INSERT INTO payments (milestone_id, amount, status, payment_date) VALUES (?, ?, 'Paid', CURRENT_DATE)";
+	    try (Connection conn = DBConnection.getConnection(); 
+	         PreparedStatement ps = conn.prepareStatement(sql)) {
+
+	        ps.setInt(1, milestoneId);
+	        ps.setDouble(2, amount);
+	        return ps.executeUpdate() > 0;
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return false;
+	}
+	
+	@Override
+	public List<Payment> getPaymentsByContractId(int contractId) {
+		List<Payment> payments = new ArrayList<>();
+		String sql = "SELECT p.* FROM payments p " +
+		             "JOIN milestones m ON p.milestone_id = m.milestone_id " +
+		             "WHERE m.contract_id = ?";
+
+		try (Connection conn = DBConnection.getConnection();
+		     PreparedStatement ps = conn.prepareStatement(sql)) {
+
+			ps.setInt(1, contractId);
+			ResultSet rs = ps.executeQuery();
+
+			while (rs.next()) {
+				Payment p = new Payment();
+				p.setPaymentId(rs.getInt("payment_id"));
+				p.setAmount(rs.getDouble("amount"));
+				p.setStatus(rs.getString("status"));
+				p.setPaymentDate(rs.getString("payment_date"));
+				payments.add(p);
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		return payments;
+	}
+
+
 }

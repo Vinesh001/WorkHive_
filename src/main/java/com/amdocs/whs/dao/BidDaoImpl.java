@@ -82,4 +82,17 @@ public class BidDaoImpl implements BidDao {
 		}
 		return bids;
 	}
+	
+	@Override
+	public boolean updateBidStatus(Bid bid) {
+		String sql = "UPDATE bids SET status = ? WHERE bid_id = ?";
+		try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+			ps.setString(1, bid.getStatus());
+			ps.setInt(2, bid.getBidId());
+			return ps.executeUpdate() > 0;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
 }
